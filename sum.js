@@ -1,6 +1,12 @@
-var SERIES_END = 20000;
+var SERIES_END = 2500;
+
 var mapFunction = function(x){
-    $.get("http://www.google.com");
+    //$.get("http://www.google.com");
+    for(var i = 0; i < SERIES_END; i++){
+	for(var j = 0; j < SERIES_END; j++){
+	    var benchmarkResult = Math.pow(i + 2*j - 7, 2) + Math.pow(2 * i + j - 5, 2);
+	}
+    }
 }
 
 var getTimestamp = function() { return window.performance.now(); };
@@ -66,10 +72,9 @@ var addSumToDivParallel = function(){
 };
 
 var runEverything = function(){
-    addSumToDiv(findSumOfArray);
-    addSumToDiv(findSumOfArrayMapReduce);
     addSumToDivParallel();
-
+    addSumToDiv(findSumOfArrayMapReduce);
+    addSumToDiv(findSumOfArray);
 };
 
 window.onload = runEverything;

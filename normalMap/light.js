@@ -1,5 +1,8 @@
 // this two functions were promoted to be global
 // to make firefoxs jit happy - URGH
+
+var getTimestamp = function() { return window.performance.now(); };
+
 function clamp(x, min, max) {
     if(x < min) return min;
     if(x > max) return max-1;
@@ -13,6 +16,9 @@ function drawLight(canvas, ctx, normals, textureData, shiny, specularity, lx, ly
     var i = 0;
     var ni = 0;
     var dx = 0, dy = 0, dz = 0;
+    
+    var start = getTimestamp();
+
     for(var y = 0; y < canvas.height; y++) {
         for(var x = 0; x < canvas.width; x++) {
             // get surface normal
@@ -50,6 +56,9 @@ function drawLight(canvas, ctx, normals, textureData, shiny, specularity, lx, ly
             ni += 3;
         }
     }
+    
+    console.log("Sequential: " + (getTimestamp() - start));
+
     ctx.putImageData(imgData, 0, 0);
 }
 

@@ -1,34 +1,28 @@
+/*jslint bitwise: true, vars: true*/
 // this two functions were promoted to be global
 // to make firefoxs jit happy - URGH
+
+
+var getTimestamp = function () {
+
+    return window.performance.now();
+};
+
+var timingTotal = 0;
+
 function clamp(x, min, max) {
-    if(x < min) return min;
-    if(x > max) return max-1;
+
+    if (x < min) {
+        return min;
+    }
+    if (x > max) {
+        return max - 1;
+    }
     return x;
 }
 
-function drawLightExperimental(canvas, ctx, normals, textureData, shiny, specularity, lx, ly, lz){
-    var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    var data = imgData.data;
-    var normalIndex = 0;
-    var dx = 0;
-    var dy = 0;
-    var dz = 0;
-    var oneDimArray = [];
+function mapFunction(index, oneDimArray, canvasWidth, normals, textureData, shiny, specularity, lx, ly, lz) {
 
-    for(var i = 0; i < data.length; i++){
-	oneDimArray[i] = data[i];
-    }
-
-    oneDimArray.map(function(each, index){ 
-	mapFunction(index, oneDimArray, canvas.width, normals, textureData, shiny, specularity, lx, ly, lz)
-    });
-
-    for (var i = 0; i < data.length; i++){
-	    data[i] = oneDimArray[i];
-    }
-}
-
-function mapFunction(index, oneDimArray, canvasWidth, normals, textureData, shiny, specularity, lx, ly, lz){
     var x = index % canvasWidth;
     var y = Math.round(index / canvasWidth);
     var ni = index * 3;
@@ -36,12 +30,12 @@ function mapFunction(index, oneDimArray, canvasWidth, normals, textureData, shin
 
     // get surface normal
     nx = normals[ni];
-    ny = normals[ni+1];
-    nz = normals[ni+2];
+    ny = normals[ni + 1];
+    nz = normals[ni + 2];
 
     // make it a bit faster by only updateing the direction
     // for every other pixel
-    if(shiny > 0 || (ni&1) == 0){
+    if (shiny > 0 || (ni % 2) == 0) {
         // calculate the light direction vector
         dx = lx - x;
         dy = ly - y;
@@ -62,7 +56,7 @@ function mapFunction(index, oneDimArray, canvasWidth, normals, textureData, shin
     // spec + ambient
     var intensity = spec + 0.5;
 
-    for(var channel = 0; channel < 3; channel++) {
+    for (var channel = 0; channel < 3; channel++) {
         oneDimArray[i+channel] = Math.round(clamp(textureData[i+channel]*intensity, 0, 255));
     }
 }
@@ -114,6 +108,46 @@ function drawLight(canvas, ctx, normals, textureData, shiny, specularity, lx, ly
     ctx.putImageData(imgData, 0, 0);
 }
 
+function drawLightExperimental(canvas, ctx, normals, textureData, shiny, specularity, lx, ly, lz) {
+
+    var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imgData.data;
+    var normalIndex = 0;
+    var dx = 0;
+    var dy = 0;
+    var dz = 0;
+    var oneDimArray = [];
+    var i;
+
+    for (i = 0; i < data.length; i += 1) {
+        oneDimArray[i] = data[i];
+    }
+
+    var start = getTimestamp();
+
+    oneDimArray.mapPar(function (each, index) {
+        mapFunction(index, oneDimArray, canvas.width, normals, textureData, shiny, specularity, lx, ly, lz)
+    });
+    
+//    timingArray.push(getTimestamp() - start);
+//
+//    if(timingArray.length >= 20) {
+//	    var total = 0;
+//
+//    	for(var i = 0; i < 20; i++) {
+//            total += timingArray[i];
+//    	}
+//        
+//    	console.log("Average: " + (total/20));
+//    	
+//    	timingArray = [];
+//    }
+
+    for (var i = 0; i < data.length; i++) {
+	    data[i] = oneDimArray[i];
+    }
+    ctx.putImageData(imgData, 0, 0);
+}
 
 function normalmap(canvasId, texture, normalmap, specularity, shiny) {
 

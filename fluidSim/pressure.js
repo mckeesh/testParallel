@@ -116,6 +116,8 @@ function FluidField(canvas) {
     
     function lin_solve2(x, x0, y, y0, a, c)
     {
+
+        var rangeArr = range(1,height);
         if (a === 0 && c === 1) {
             for (var j=1 ; j <= height; j++) {
                 var currentRow = j * rowSize;
@@ -131,7 +133,7 @@ function FluidField(canvas) {
         } else {
             var invC = 1/c;
             for (var k=0 ; k<iterations; k++) {
-                for (var j=1 ; j <= height; j++) {
+                rangeArr.map(function(j){
                     var lastRow = (j - 1) * rowSize;
                     var currentRow = j * rowSize;
                     var nextRow = (j + 1) * rowSize;
@@ -142,7 +144,7 @@ function FluidField(canvas) {
                         lastX = x[currentRow] = (x0[currentRow] + a * (lastX + x[currentRow] + x[lastRow] + x[nextRow])) * invC;
                         lastY = y[currentRow] = (y0[currentRow] + a * (lastY + y[++currentRow] + y[++lastRow] + y[++nextRow])) * invC;
                     }
-                }
+                });
                 set_bnd(1, x);
                 set_bnd(2, y);
             }

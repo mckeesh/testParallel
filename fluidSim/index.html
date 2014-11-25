@@ -63,20 +63,22 @@
                 running=true;
                 interval = setTimeout(updateFrame, 10);
             }
-            var start = new Date;
-            var frames = 0;
+            
             function updateFrame() {
+                var frames = 0;
+                var start = performance.now();
                 field.update();
-                var end = new Date;
+                var end = performance.now();
                 frames++;
                 if ((end - start) > 1000) {
-                    log("FPS: " + ((1000*frames/(end - start) + 0.5)|0));
+                    log("Update Time:: " + (end - start) + "ms");
                     start = end;
                     frames=0;
                 }
                 if (running)
                     interval = setTimeout(updateFrame, 10);
             }
+            
             var options = {};
             try {
                 options = JSON.parse(location.search.substring(1));

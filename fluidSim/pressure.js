@@ -203,7 +203,7 @@ function FluidField(canvas) {
     function project(u, v, p, div)
     {
 
-        var rangeArr = range(1,height);
+        var rangeArr = range(1,height+1);
 
         var h = -0.5 / Math.sqrt(width * height);
 

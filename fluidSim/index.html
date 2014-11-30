@@ -29,6 +29,11 @@
             var displaySize = 512;
             var fieldRes;
             var canvas;
+
+            var loopIndex = 0;
+            var totalTime = 0;
+            var averagePeriod = 300;
+
             function prepareFrame(field)
             {
                 var canvas = document.getElementById("canvas");
@@ -69,12 +74,19 @@
                 var start = performance.now();
                 field.update();
                 var end = performance.now();
+                totalTime += (end-start);
                 frames++;
-                if ((end - start) > 1000) {
-                    log("Update Time:: " + (end - start) + "ms");
+                if (loopIndex % averagePeriod == 0) {
+                    log("Update Time: " + ((totalTime/averagePeriod) + "").substring(0,6) + "ms");
+                    totalTime = 0;
+                    //console.log(end - start);
                     start = end;
                     frames=0;
+                } else {
+
                 }
+                loopIndex++;
+
                 if (running)
                     interval = setTimeout(updateFrame, 10);
             }

@@ -219,6 +219,7 @@ function FluidField(canvas) {
                 p[currentRow] = 0;
             }
         });
+
         set_bnd(0, div);
         set_bnd(0, p);
         

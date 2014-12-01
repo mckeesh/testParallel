@@ -96,7 +96,7 @@ function FluidField(canvas) {
 
             for (var k=0 ; k<iterations; k++) {
 
-                rangeArr.map(function(j){
+                rangeArr.mapPar(function(j){
                     var lastRow = (j - 1) * rowSize;
                     var currentRow = j * rowSize;
                     var nextRow = (j + 1) * rowSize;

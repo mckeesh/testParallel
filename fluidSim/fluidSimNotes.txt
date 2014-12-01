@@ -1,0 +1,18 @@
+In the fluidSim directory:
+While refamiliarizing myself with this code, I found that mapPar works, but at a lower framerate. 
+It seems to be bailing out of parallel execution a lot.
+Switching from mapPar to map sequential is causing the fluid to stop behaving like a fluid (just lines)
+No console logging when it just draws a line
+
+Desktop: 
+
+64 resolution, iterations bar far left
+	Parallel (No bail outs): 41 fps
+	Seq: 60 FPS
+
+11/19
+Observed that the code seems to already be split into doing each set of calculations for a screen update all at once. 
+
+I set up the lin_solve second nested loop in the "else" as a map(), and it worked. I tried using mapPar, and it bailed, but I decided to do refactoring all at once rather than refactor, then fix bailouts, refactor, then fix bailouts, etc. We are passing references to arrays into the functions, which means that we are probably trying to alter shared arrays.
+
+I think map() is swallowing my errors when I miss a bracket or something

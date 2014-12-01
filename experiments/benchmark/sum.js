@@ -1,42 +1,45 @@
-var SERIES_END = 2500;
+var SERIES_END = 1500;
 
 var mapFunction = function(x){
-    //$.get("http://www.google.com");
     for(var i = 0; i < SERIES_END; i++){
-	for(var j = 0; j < SERIES_END; j++){
-	    var benchmarkResult = Math.pow(i + 2*j - 7, 2) + Math.pow(2 * i + j - 5, 2);
-	}
+	   for(var j = 0; j < SERIES_END; j++){
+	       Math.pow(i + 2*j - 7, 2) + Math.pow(2 * i + j - 5, 2);
+	   }
     }
 }
 
 var getTimestamp = function() { return window.performance.now(); };
 
+//Gets the array that we will use map
 var getSeriesOfNumbers = function(begin, end){
     var numList = [];
     
     for (var i = begin; i <= end; i++){
-	numList.push(i);
+	   numList.push(i);
     }
 
     return numList;
 };
 
-var findSumOfArrayMapReduce = function(array){
+var findSumOfArrayMap = function(array){
    
     return array.map(function(element){
-	mapFunction(element);})
+	   mapFunction(element);
+    });
 };
 
 var findSumOfArray = function(array){
-     var total = 0;
+    var total = 0;
+    
     for (var i = 0; i < array.length; i++){
-	mapFunction();
+	   mapFunction();
     }
+    
     return total;
 
 }
 
-var addSumToDiv = function(sumFunction){
+var addSumToDiv = function(sumFunction, functName){
     var begin = 1;
     var end = SERIES_END;
     var sum = 0;
@@ -48,9 +51,8 @@ var addSumToDiv = function(sumFunction){
     
     var elapsed = getTimestamp() - start;
     
-    console.log(elapsed);
     var div = document.getElementById('sequentialSum');
-    div.innerHTML += " Non parallel Took:" + elapsed + "ms <br/>";
+    div.innerHTML += functName + " Took:" + elapsed + "ms <br/>";
 };
 
 var addSumToDivParallel = function(){
@@ -61,7 +63,7 @@ var addSumToDivParallel = function(){
     var start = getTimestamp();
     
     var sumPar = series.mapPar(function(element){
-	mapFunction();
+	   mapFunction();
     });
 
 
@@ -73,8 +75,8 @@ var addSumToDivParallel = function(){
 
 var runEverything = function(){
     addSumToDivParallel();
-    addSumToDiv(findSumOfArrayMapReduce);
-    addSumToDiv(findSumOfArray);
+    addSumToDiv(findSumOfArrayMap, "Map");
+    addSumToDiv(findSumOfArray, "");
 };
 
 window.onload = runEverything;

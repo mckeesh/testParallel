@@ -28,15 +28,15 @@ document.getElementById('close').onmousedown = function(e) {
 
 // settings
 
-var physics_accuracy  = 5,
+var physics_accuracy  = 3,
     mouse_influence   = 20,
     mouse_cut         = 5,
     gravity           = 1200,
-    cloth_height      = 50,
+    cloth_height      = 30,
     cloth_width       = 50,
     start_y           = 20,
     spacing           = 7,
-    tear_distance     = 30;
+    tear_distance     = 60;
 
 
 window.requestAnimFrame =
@@ -215,15 +215,18 @@ Cloth.prototype.update = function () {
 
     while (i--) {
         var p = this.points.length;
-	
-	this.points.mapPar(function(each){
-	    each.resolve_constraints();
-	})
         //while (p--) this.points[p].resolve_constraints();
+        var t1 = performance.now();
+
+        this.points.mapPar(e => e.resolve_constraints());
+
+        var t2 = performance.now();
+        console.log(t2-t1)
     }
 
     i = this.points.length;
-    while (i--) this.points[i].update(.016);
+    //while (i--) this.points[i].update(.016);
+    this.points.map(e => e.update(0.016));
 };
 
 Cloth.prototype.draw = function () {

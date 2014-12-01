@@ -27,47 +27,50 @@
 function FluidField(canvas) {
     function addFields(x, s, dt)
     {
-        for (var i=0; i<size ; i++ ) x[i] += dt*s[i];
+        for (var i=0; i<size ; i++ ) {
+            x[i].val += dt * s[i].val;
+        }
+
     }
 
     function set_bnd(b, x)
     {
         if (b===1) {
             for (var i = 1; i <= width; i++) {
-                x[i] =  x[i + rowSize];
-                x[i + (height+1) *rowSize] = x[i + height * rowSize];
+                x[i].val =  x[i + rowSize].val;
+                x[i + (height+1) *rowSize].val = x[i + height * rowSize].val;
             }
 
             for (var j = 1; i <= height; i++) {
-                x[j * rowSize] = -x[1 + j * rowSize];
-                x[(width + 1) + j * rowSize] = -x[width + j * rowSize];
+                x[j * rowSize].val = -x[1 + j * rowSize].val;
+                x[(width + 1) + j * rowSize].val = -x[width + j * rowSize].val;
             }
         } else if (b === 2) {
             for (var i = 1; i <= width; i++) {
-                x[i] = -x[i + rowSize];
-                x[i + (height + 1) * rowSize] = -x[i + height * rowSize];
+                x[i].val = -x[i + rowSize].val;
+                x[i + (height + 1) * rowSize].val = -x[i + height * rowSize].val;
             }
 
             for (var j = 1; j <= height; j++) {
-                x[j * rowSize] =  x[1 + j * rowSize];
-                x[(width + 1) + j * rowSize] =  x[width + j * rowSize];
+                x[j * rowSize].val =  x[1 + j * rowSize].val;
+                x[(width + 1) + j * rowSize].val =  x[width + j * rowSize].val;
             }
         } else {
             for (var i = 1; i <= width; i++) {
-                x[i] =  x[i + rowSize];
-                x[i + (height + 1) * rowSize] = x[i + height * rowSize];
+                x[i].val =  x[i + rowSize].val;
+                x[i + (height + 1) * rowSize].val = x[i + height * rowSize].val;
             }
 
             for (var j = 1; j <= height; j++) {
-                x[j * rowSize] =  x[1 + j * rowSize];
-                x[(width + 1) + j * rowSize] =  x[width + j * rowSize];
+                x[j * rowSize].val =  x[1 + j * rowSize].val;
+                x[(width + 1) + j * rowSize].val =  x[width + j * rowSize].val;
             }
         }
         var maxEdge = (height + 1) * rowSize;
-        x[0]                 = 0.5 * (x[1] + x[rowSize]);
-        x[maxEdge]           = 0.5 * (x[1 + maxEdge] + x[height * rowSize]);
-        x[(width+1)]         = 0.5 * (x[width] + x[(width + 1) + rowSize]);
-        x[(width+1)+maxEdge] = 0.5 * (x[width + maxEdge] + x[(width + 1) + height * rowSize]);
+        x[0].val                 = 0.5 * (x[1].val + x[rowSize].val);
+        x[maxEdge].val          = 0.5 * (x[1 + maxEdge].val + x[height * rowSize].val);
+        x[(width+1)].val       = 0.5 * (x[width].val + x[(width + 1) + rowSize].val);
+        x[(width+1)+maxEdge].val = 0.5 * (x[width + maxEdge].val + x[(width + 1) + height * rowSize].val);
     }
 
     function range(start, finish){
@@ -86,7 +89,7 @@ function FluidField(canvas) {
                 var currentRow = j * rowSize;
                 ++currentRow;
                 for (var i = 0; i < width; i++) {
-                    x[currentRow] = x0[currentRow];
+                    x[currentRow].val = x0[currentRow].val;
                     ++currentRow;
                 }
             }
@@ -96,14 +99,14 @@ function FluidField(canvas) {
 
             for (var k=0 ; k<iterations; k++) {
 
-                rangeArr.mapPar(function(j){
+                rangeArr.map(function(j){
                     var lastRow = (j - 1) * rowSize;
                     var currentRow = j * rowSize;
                     var nextRow = (j + 1) * rowSize;
-                    var lastX = x[currentRow];
+                    var lastX = x[currentRow].val;
                     ++currentRow;
                     for (var i=1; i<=width; i++)
-                        lastX = x[currentRow] = (x0[currentRow] + a*(lastX+x[++currentRow]+x[++lastRow]+x[++nextRow])) * invC;
+                        lastX = x[currentRow].val = (x0[currentRow].val + a*(lastX+x[++currentRow].val+x[++lastRow].val+x[++nextRow].val)) * invC;
                 });
 
                 set_bnd(b, x);
@@ -111,7 +114,7 @@ function FluidField(canvas) {
         }
     }
     
-    function diffuse(b, x, x0, dt)
+    function diffuse(b, x, x0)
     {
         var a = 0;
         lin_solve(b, x, x0, a, 1 + 4*a);
@@ -125,8 +128,8 @@ function FluidField(canvas) {
                 var currentRow = j * rowSize;
                 ++currentRow;
                 for (var i = 0; i < width; i++) {
-                    x[currentRow] = x0[currentRow];
-                    y[currentRow] = y0[currentRow];
+                    x[currentRow].val = x0[currentRow].val;
+                    y[currentRow].val = y0[currentRow].val;
                     ++currentRow;
                 }
             }
@@ -142,12 +145,12 @@ function FluidField(canvas) {
                     var lastRow = (j - 1) * rowSize;
                     var currentRow = j * rowSize;
                     var nextRow = (j + 1) * rowSize;
-                    var lastX = x[currentRow];
-                    var lastY = y[currentRow];
+                    var lastX = x[currentRow].val;
+                    var lastY = y[currentRow].val;
                     ++currentRow;
                     for (var i = 1; i <= width; i++) {
-                        lastX = x[currentRow] = (x0[currentRow] + a * (lastX + x[currentRow] + x[lastRow] + x[nextRow])) * invC;
-                        lastY = y[currentRow] = (y0[currentRow] + a * (lastY + y[++currentRow] + y[++lastRow] + y[++nextRow])) * invC;
+                        lastX = x[currentRow].val = (x0[currentRow].val + a * (lastX + x[currentRow].val + x[lastRow].val + x[nextRow].val)) * invC;
+                        lastY = y[currentRow].val = (y0[currentRow].val + a * (lastY + y[++currentRow].val + y[++lastRow].val + y[++nextRow].val)) * invC;
                     }
                 });
                 set_bnd(1, x);
@@ -173,8 +176,8 @@ function FluidField(canvas) {
         rangeArr.map( function(j) {
             var pos = j * rowSize;
             for (var i = 1; i <= width; i++) {
-                var x = i - Wdt0 * u[++pos]; 
-                var y = j - Hdt0 * v[pos];
+                var x = i - Wdt0 * u[++pos].val;
+                var y = j - Hdt0 * v[pos].val;
                 if (x < 0.5)
                     x = 0.5;
                 else if (x > Wp5)
@@ -193,7 +196,7 @@ function FluidField(canvas) {
                 var t0 = 1 - t1;
                 var row1 = j0 * rowSize;
                 var row2 = j1 * rowSize;
-                d[pos] = s0 * (t0 * d0[i0 + row1] + t1 * d0[i0 + row2]) + s1 * (t0 * d0[i1 + row1] + t1 * d0[i1 + row2]);
+                d[pos].val = s0 * (t0 * d0[i0 + row1].val + t1 * d0[i0 + row2].val) + s1 * (t0 * d0[i1 + row1].val + t1 * d0[i1 + row2].val);
             }
         });
 
@@ -215,8 +218,8 @@ function FluidField(canvas) {
             var nextValue = row + 1;
             var nextRow = (j + 1) * rowSize;
             for (var i = 1; i <= width; i++ ) {
-                div[++currentRow] = h * (u[++nextValue] - u[++prevValue] + v[++nextRow] - v[++previousRow]);
-                p[currentRow] = 0;
+                div[++currentRow].val = h * (u[++nextValue].val - u[++prevValue].val + v[++nextRow].val - v[++previousRow].val);
+                p[currentRow].val = 0;
             }
         });
 
@@ -236,8 +239,8 @@ function FluidField(canvas) {
             var nextRow = (j + 1) * rowSize;
 
             for (var i = 1; i<= width; i++) {
-                u[++currentPos] -= wScale * (p[++nextPos] - p[++prevPos]);
-                v[currentPos]   -= hScale * (p[++nextRow] - p[++prevRow]);
+                u[++currentPos].val -= wScale * (p[++nextPos].val - p[++prevPos].val);
+                v[currentPos].val   -= hScale * (p[++nextRow].val - p[++prevRow].val);
             }
         });
         set_bnd(1, u);
@@ -271,20 +274,20 @@ function FluidField(canvas) {
         // Just exposing the fields here rather than using accessors is a measurable win during display (maybe 5%)
         // but makes the code ugly.
         this.setDensity = function(x, y, d) {
-             dens[(x + 1) + (y + 1) * rowSize] = d;
+             dens[(x + 1) + (y + 1) * rowSize].val = d;
         }
         this.getDensity = function(x, y) {
-             return dens[(x + 1) + (y + 1) * rowSize];
+             return dens[(x + 1) + (y + 1) * rowSize].val;
         }
         this.setVelocity = function(x, y, xv, yv) {
-             u[(x + 1) + (y + 1) * rowSize] = xv;
-             v[(x + 1) + (y + 1) * rowSize] = yv;
+             u[(x + 1) + (y + 1) * rowSize].val = xv;
+             v[(x + 1) + (y + 1) * rowSize].val = yv;
         }
         this.getXVelocity = function(x, y) {
-             return u[(x + 1) + (y + 1) * rowSize];
+             return u[(x + 1) + (y + 1) * rowSize].val;
         }
         this.getYVelocity = function(x, y) {
-             return v[(x + 1) + (y + 1) * rowSize];
+             return v[(x + 1) + (y + 1) * rowSize].val;
         }
         this.width = function() { return width; }
         this.height = function() { return height; }
@@ -292,7 +295,7 @@ function FluidField(canvas) {
     function queryUI(d, u, v)
     {
         for (var i = 0; i < size; i++)
-            u[i] = v[i] = d[i] = 0.0;
+            u[i].val = v[i].val = d[i].val = 0.0;
         uiCallback(new Field(d, u, v));
     }
 
@@ -328,6 +331,7 @@ function FluidField(canvas) {
     var rowSize;
     var size;
     var displayFunc;
+    var Int32 = new TypedObject.StructType({val: TypedObject.int32});
     function reset()
     {
         rowSize = width + 2;
@@ -338,8 +342,10 @@ function FluidField(canvas) {
         u_prev = new Array(size);
         v = new Array(size);
         v_prev = new Array(size);
-        for (var i = 0; i < size; i++)
-            dens_prev[i] = u_prev[i] = v_prev[i] = dens[i] = u[i] = v[i] = 0;
+
+        for (var i = 0; i < size; i++){
+            dens_prev[i] = u_prev[i] = v_prev[i] = dens[i] = u[i] = v[i] = new Int32();
+        }
     }
     this.reset = reset;
     this.setResolution = function (hRes, wRes)

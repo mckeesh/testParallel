@@ -238,6 +238,13 @@ function nqueen_solver(size, board_mask, mask, left_mask, right_mask, unique_sol
     return total_solutions;
 }
 
+function range(start, finish){
+    var rangeArr = [];
+    var count = 0;
+    while(start < finish){rangeArr[count++] = start++;}
+    return rangeArr;
+}
+
 function nqueenJS(size, unique_solutions)
 {
     var solutions = 0;
@@ -245,18 +252,21 @@ function nqueenJS(size, unique_solutions)
     var i;
 
     // get initial set of solutions
-    for(i = 2; i < size; i++) {
+    var rangeArr = range(2,size);
+
+    rangeArr.map(function(i) {
         solutions += nqueen_solver1(size, i);
-    }
+    });
 
     unique_solutions["solutions"] = solutions;
     solutions *= 8;
 
+    var rangeArr = range(1,size / 2);
     // accound for symmetries
-    for(i = 1; i < size / 2; i++) {
+    rangeArr.map(function(i) {
         solutions += nqueen_solver(size, (1 << size) - 1, 1 << i, 1 << (i + 1), (1 << i) >> 1, u_solutions);
         unique_solutions["solutions"] += u_solutions["solutions"];
-    }
+    });
 
     timing = size;
     return solutions;
@@ -281,4 +291,4 @@ function runNQueens(size){
         time: (t2-t1)/1000 };
 }
 
-runNQueens(17);
+runNQueens(16);

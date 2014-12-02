@@ -29,6 +29,8 @@ var bit_mask2 = parseInt("0xcccccccc", 16);
 var bit_mask3 = parseInt("0xf0f0f0f0", 16);
 var bit_mask4 = parseInt("0xff00ff00", 16);
 var bit_mask5 = parseInt("0xffff0000", 16);
+var Int32 = new TypedObject.StructType({val : TypedObject.int32});
+var SolutionsObj = new TypedObject.StructType({solutions : TypedObject.int32, unique_solutions: TypedObject.int32});
 
 if (typeof performance === "undefined")
     performance = Date;
@@ -238,10 +240,14 @@ function nqueen_solver(size, board_mask, mask, left_mask, right_mask, unique_sol
     return total_solutions;
 }
 
-function range(start, finish){
+function rangeTyped(start, finish){
     var rangeArr = [];
     var count = 0;
-    while(start < finish){rangeArr[count++] = start++;}
+
+    while(start < finish){
+        rangeArr[count++] = new Int32({val: start++});
+    }
+
     return rangeArr;
 }
 
@@ -252,20 +258,32 @@ function nqueenJS(size, unique_solutions)
     var i;
 
     // get initial set of solutions
-    var rangeArr = range(2,size);
+    var rangeArr = rangeTyped(2,size);
 
     rangeArr.map(function(i) {
-        solutions += nqueen_solver1(size, i);
+        solutions += nqueen_solver1(size, i.val);
     });
 
     unique_solutions["solutions"] = solutions;
     solutions *= 8;
 
-    var rangeArr = range(1,size / 2);
+    var rangeArr = rangeTyped(1,size/2);
+
     // accound for symmetries
-    rangeArr.map(function(i) {
-        solutions += nqueen_solver(size, (1 << size) - 1, 1 << i, 1 << (i + 1), (1 << i) >> 1, u_solutions);
-        unique_solutions["solutions"] += u_solutions["solutions"];
+    var solutionsObjectArr = rangeArr.mapPar(function(i) {
+        return new SolutionsObj({
+            solutions: nqueen_solver(size, (1 << size) - 1, 1 << i.val, 1 << (i.val + 1), (1 << i.val) >> 1, u_solutions),
+            unique_solutions:  u_solutions["solutions"]
+        });
+    });
+
+    //solutions += nqueen_solver(size, (1 << size) - 1, 1 << i.val, 1 << (i.val + 1), (1 << i.val) >> 1, u_solutions)
+    //unique_solutions["solutions"] += u_solutions["solutions"]
+
+    //MUST RUN SEQUENTIALLY! Deals with the results of parallel execution.
+    solutionsObjectArr.map(function(solutionObj){
+        solutions += solutionObj.solutions;
+        unique_solutions["solutions"] += solutionObj.unique_solutions;
     });
 
     timing = size;

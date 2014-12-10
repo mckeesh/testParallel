@@ -25,49 +25,149 @@
  */
 
 function FluidField(canvas) {
-    function addFields(x, s, dt)
+
+    var FluidUnit = function(){
+        this.u = 0;
+        this.v = 0;
+        this.dense = 0;
+        this.u_prev = 0;
+        this.v_prev = 0;
+        this.dense_prev = 0;
+    };
+
+    function addUFields(fluidUnitsArray, dt)
     {
-        for (var i=0; i<size ; i++ ) x[i] += dt*s[i];
+        for (var i=0; i<size ; i++ ) fluidUnitsArray[i].u += dt*fluidUnitsArray[i].u_prev;
     }
 
-    function set_bnd(b, x)
+    function addVFields(fluidUnitsArray, dt)
+    {
+        for (var i=0; i<size ; i++ ) fluidUnitsArray[i].v += dt*fluidUnitsArray[i].v_prev;
+    }
+
+    function addDenseFields(fluidUnitsArray, dt)
+    {
+        for (var i=0; i<size ; i++ ) fluidUnitsArray[i].dense += dt*fluidUnitsArray[i].dense_prev;
+    }
+
+    function set_bndU(b, fluidUnitsArray)
     {
         if (b===1) {
             for (var i = 1; i <= width; i++) {
-                x[i] =  x[i + rowSize];
-                x[i + (height+1) *rowSize] = x[i + height * rowSize];
+                fluidUnitsArray[i].u =  fluidUnitsArray[i + rowSize].u;
+                fluidUnitsArray[i + (height+1) *rowSize].u = fluidUnitsArray[i + height * rowSize].u;
             }
 
             for (var j = 1; i <= height; i++) {
-                x[j * rowSize] = -x[1 + j * rowSize];
-                x[(width + 1) + j * rowSize] = -x[width + j * rowSize];
+                fluidUnitsArray[j * rowSize].u = -fluidUnitsArray[1 + j * rowSize].u;
+                fluidUnitsArray[(width + 1) + j * rowSize].u = -fluidUnitsArray[width + j * rowSize].u;
             }
         } else if (b === 2) {
             for (var i = 1; i <= width; i++) {
-                x[i] = -x[i + rowSize];
-                x[i + (height + 1) * rowSize] = -x[i + height * rowSize];
+                fluidUnitsArray[i].u = -fluidUnitsArray[i + rowSize].u;
+                fluidUnitsArray[i + (height + 1) * rowSize].u = -fluidUnitsArray[i + height * rowSize].u;
             }
 
             for (var j = 1; j <= height; j++) {
-                x[j * rowSize] =  x[1 + j * rowSize];
-                x[(width + 1) + j * rowSize] =  x[width + j * rowSize];
+                fluidUnitsArray[j * rowSize].u =  fluidUnitsArray[1 + j * rowSize].u;
+                fluidUnitsArray[(width + 1) + j * rowSize].u =  fluidUnitsArray[width + j * rowSize].u;
             }
         } else {
             for (var i = 1; i <= width; i++) {
-                x[i] =  x[i + rowSize];
-                x[i + (height + 1) * rowSize] = x[i + height * rowSize];
+                fluidUnitsArray[i].u =  fluidUnitsArray[i + rowSize].u;
+                fluidUnitsArray[i + (height + 1) * rowSize].u = fluidUnitsArray[i + height * rowSize].u;
             }
 
             for (var j = 1; j <= height; j++) {
-                x[j * rowSize] =  x[1 + j * rowSize];
-                x[(width + 1) + j * rowSize] =  x[width + j * rowSize];
+                fluidUnitsArray[j * rowSize].u =  fluidUnitsArray[1 + j * rowSize].u;
+                fluidUnitsArray[(width + 1) + j * rowSize].u =  fluidUnitsArray[width + j * rowSize].u;
             }
         }
         var maxEdge = (height + 1) * rowSize;
-        x[0]                 = 0.5 * (x[1] + x[rowSize]);
-        x[maxEdge]           = 0.5 * (x[1 + maxEdge] + x[height * rowSize]);
-        x[(width+1)]         = 0.5 * (x[width] + x[(width + 1) + rowSize]);
-        x[(width+1)+maxEdge] = 0.5 * (x[width + maxEdge] + x[(width + 1) + height * rowSize]);
+        fluidUnitsArray[0].u          = 0.5 * (fluidUnitsArray[1].u + fluidUnitsArray[rowSize].u);
+        fluidUnitsArray[maxEdge].u          = 0.5 * (fluidUnitsArray[1 + maxEdge].u + fluidUnitsArray[height * rowSize].u);
+        fluidUnitsArray[(width+1)].u         = 0.5 * (fluidUnitsArray[width].u + fluidUnitsArray[(width + 1) + rowSize].u);
+        fluidUnitsArray[(width+1)+maxEdge].u = 0.5 * (fluidUnitsArray[width + maxEdge].u + fluidUnitsArray[(width + 1) + height * rowSize].u);
+    }
+
+    function set_bndU0(b, fluidUnitsArray)
+    {
+        if (b===1) {
+            for (var i = 1; i <= width; i++) {
+                fluidUnitsArray[i].u_prev =  fluidUnitsArray[i + rowSize].u_prev;
+                fluidUnitsArray[i + (height+1) *rowSize].u_prev = fluidUnitsArray[i + height * rowSize].u_prev;
+            }
+
+            for (var j = 1; i <= height; i++) {
+                fluidUnitsArray[j * rowSize].u_prev = -fluidUnitsArray[1 + j * rowSize].u_prev;
+                fluidUnitsArray[(width + 1) + j * rowSize].u_prev = -fluidUnitsArray[width + j * rowSize].u_prev;
+            }
+        } else if (b === 2) {
+            for (var i = 1; i <= width; i++) {
+                fluidUnitsArray[i].u_prev = -fluidUnitsArray[i + rowSize].u_prev;
+                fluidUnitsArray[i + (height + 1) * rowSize].u_prev = -fluidUnitsArray[i + height * rowSize].u_prev;
+            }
+
+            for (var j = 1; j <= height; j++) {
+                fluidUnitsArray[j * rowSize].u_prev =  fluidUnitsArray[1 + j * rowSize].u_prev;
+                fluidUnitsArray[(width + 1) + j * rowSize].u_prev =  fluidUnitsArray[width + j * rowSize].u_prev;
+            }
+        } else {
+            for (var i = 1; i <= width; i++) {
+                fluidUnitsArray[i].u_prev =  fluidUnitsArray[i + rowSize].u_prev;
+                fluidUnitsArray[i + (height + 1) * rowSize].u_prev = fluidUnitsArray[i + height * rowSize].u_prev;
+            }
+
+            for (var j = 1; j <= height; j++) {
+                fluidUnitsArray[j * rowSize].u_prev =  fluidUnitsArray[1 + j * rowSize].u_prev;
+                fluidUnitsArray[(width + 1) + j * rowSize].u_prev =  fluidUnitsArray[width + j * rowSize].u_prev;
+            }
+        }
+        var maxEdge = (height + 1) * rowSize;
+        fluidUnitsArray[0].u_prev          = 0.5 * (fluidUnitsArray[1].u + fluidUnitsArray[rowSize].u_prev);
+        fluidUnitsArray[maxEdge].u_prev          = 0.5 * (fluidUnitsArray[1 + maxEdge].u + fluidUnitsArray[height * rowSize].u_prev);
+        fluidUnitsArray[(width+1)].u_prev         = 0.5 * (fluidUnitsArray[width].u + fluidUnitsArray[(width + 1) + rowSize].u_prev);
+        fluidUnitsArray[(width+1)+maxEdge].u_prev = 0.5 * (fluidUnitsArray[width + maxEdge].u + fluidUnitsArray[(width + 1) + height * rowSize].u_prev);
+    }
+
+    function set_bndV(b, fluidUnitsArray)
+    {
+        if (b===1) {
+            for (var i = 1; i <= width; i++) {
+                fluidUnitsArray[i].v =  fluidUnitsArray[i + rowSize].v;
+                fluidUnitsArray[i + (height+1) *rowSize].v = fluidUnitsArray[i + height * rowSize].v;
+            }
+
+            for (var j = 1; i <= height; i++) {
+                fluidUnitsArray[j * rowSize].v = -fluidUnitsArray[1 + j * rowSize].v;
+                fluidUnitsArray[(width + 1) + j * rowSize].v = -fluidUnitsArray[width + j * rowSize].v;
+            }
+        } else if (b === 2) {
+            for (var i = 1; i <= width; i++) {
+                fluidUnitsArray[i].v = -fluidUnitsArray[i + rowSize].v;
+                fluidUnitsArray[i + (height + 1) * rowSize].v = -fluidUnitsArray[i + height * rowSize].v;
+            }
+
+            for (var j = 1; j <= height; j++) {
+                fluidUnitsArray[j * rowSize].v =  fluidUnitsArray[1 + j * rowSize].v;
+                fluidUnitsArray[(width + 1) + j * rowSize].v =  fluidUnitsArray[width + j * rowSize].v;
+            }
+        } else {
+            for (var i = 1; i <= width; i++) {
+                fluidUnitsArray[i].v =  fluidUnitsArray[i + rowSize].v;
+                fluidUnitsArray[i + (height + 1) * rowSize].v = fluidUnitsArray[i + height * rowSize].v;
+            }
+
+            for (var j = 1; j <= height; j++) {
+                fluidUnitsArray[j * rowSize].v =  fluidUnitsArray[1 + j * rowSize].v;
+                fluidUnitsArray[(width + 1) + j * rowSize].v =  fluidUnitsArray[width + j * rowSize].v;
+            }
+        }
+        var maxEdge = (height + 1) * rowSize;
+        fluidUnitsArray[0].v          = 0.5 * (fluidUnitsArray[1].u + fluidUnitsArray[rowSize].v);
+        fluidUnitsArray[maxEdge].v          = 0.5 * (fluidUnitsArray[1 + maxEdge].v + fluidUnitsArray[height * rowSize].v);
+        fluidUnitsArray[(width+1)].v         = 0.5 * (fluidUnitsArray[width].v + fluidUnitsArray[(width + 1) + rowSize].v);
+        fluidUnitsArray[(width+1)+maxEdge].v = 0.5 * (fluidUnitsArray[width + maxEdge].v + fluidUnitsArray[(width + 1) + height * rowSize].v);
     }
 
     function range(start, finish){
@@ -77,7 +177,7 @@ function FluidField(canvas) {
       return rangeArr;
     }
 
-    function lin_solve(b, x, x0, a, c)
+    function lin_solve(b, fluidUnitsArray, a, c)
     {
         var rangeArr = range(1,height);
 
@@ -86,38 +186,39 @@ function FluidField(canvas) {
                 var currentRow = j * rowSize;
                 ++currentRow;
                 for (var i = 0; i < width; i++) {
-                    x[currentRow] = x0[currentRow];
+                    fluidUnitsArray[currentRow].u_prev = fluidUnitsArray[currentRow].v_prev;
                     ++currentRow;
                 }
             }
-            set_bnd(b, x);
+            set_bndU0(b, fluidUnitsArray);
         } else {
             var invC = 1 / c;
 
             for (var k=0 ; k<iterations; k++) {
 
-                rangeArr.mapPar(function(j){
+                for(var j = 0; j < height; j++){
+                    j += 1;
                     var lastRow = (j - 1) * rowSize;
                     var currentRow = j * rowSize;
                     var nextRow = (j + 1) * rowSize;
-                    var lastX = x[currentRow];
+                    var lastU0 = fluidUnitsArray[currentRow].u_prev;
                     ++currentRow;
                     for (var i=1; i<=width; i++)
-                        lastX = x[currentRow] = (x0[currentRow] + a*(lastX+x[++currentRow]+x[++lastRow]+x[++nextRow])) * invC;
-                });
+                        lastU0 = fluidUnitsArray[currentRow].u_prev = (fluidUnitsArray[currentRow].v_prev + a*(lastU0+fluidUnitsArray[++currentRow].u_prev+fluidUnitsArray[++lastRow].u_prev+fluidUnitsArray[++nextRow].u_prev)) * invC;
+                }
 
-                set_bnd(b, x);
+                set_bndU0(b, fluidUnitsArray);
             }
         }
     }
     
-    function diffuse(b, x, x0, dt)
+    function diffuse(b, fluidUnitsArray, dt)
     {
         var a = 0;
-        lin_solve(b, x, x0, a, 1 + 4*a);
+        lin_solve(b, fluidUnitsArray, a, 1 + 4*a);
     }
     
-    function lin_solve2(x, x0, y, y0, a, c)
+    function lin_solve2(fluidUnitsArray, a, c)
     {
 
         if (a === 0 && c === 1) {
@@ -125,44 +226,45 @@ function FluidField(canvas) {
                 var currentRow = j * rowSize;
                 ++currentRow;
                 for (var i = 0; i < width; i++) {
-                    x[currentRow] = x0[currentRow];
-                    y[currentRow] = y0[currentRow];
+                    fluidUnitsArray[currentRow].u = fluidUnitsArray[currentRow].u_prev;
+                    fluidUnitsArray[currentRow].v = fluidUnitsArray[currentRow].v_prev;
                     ++currentRow;
                 }
             }
-            set_bnd(1, x);
-            set_bnd(2, y);
+            set_bndU(1, fluidUnitsArray);
+            set_bndV(2, fluidUnitsArray);
         } else {
             var rangeArr = range(1,height);
             //TODO: NEVER SEEMS TO SATISFY THIS CONDITION
             var invC = 1/c;
 
             for (var k=0 ; k<iterations; k++) {
-                rangeArr.map(function (j) {
+                fluidUnitsArray.map(function (fluidUnit, j) {
+                    j += 1;
                     var lastRow = (j - 1) * rowSize;
                     var currentRow = j * rowSize;
                     var nextRow = (j + 1) * rowSize;
-                    var lastX = x[currentRow];
-                    var lastY = y[currentRow];
+                    var lastX = fluidUnit.u;
+                    var lastY = fluidUnit.v;
                     ++currentRow;
                     for (var i = 1; i <= width; i++) {
-                        lastX = x[currentRow] = (x0[currentRow] + a * (lastX + x[currentRow] + x[lastRow] + x[nextRow])) * invC;
-                        lastY = y[currentRow] = (y0[currentRow] + a * (lastY + y[++currentRow] + y[++lastRow] + y[++nextRow])) * invC;
+                        lastX = fluidUnit.u = (fluidUnit.u_prev + a * (lastX + fluidUnit.u + fluidUnitsArray[lastRow].u + fluidUnitsArray[nextRow].u)) * invC;
+                        lastY = fluidUnit.v = (fluidUnit.v_prev + a * (lastY + fluidUnit.v + fluidUnitsArray[++lastRow].v + fluidUnitsArray[++nextRow].v)) * invC;
                     }
                 });
-                set_bnd(1, x);
-                set_bnd(2, y);
+                set_bndU(1, fluidUnitsArray);
+                set_bndV(2, fluidUnitsArray);
             }
         }
     }
     
-    function diffuse2(x, x0, y, y0, dt)
+    function diffuse2(fluidUnitsArray, dt)
     {
         var a = 0;
-        lin_solve2(x, x0, y, y0, a, 1 + 4 * a);
+        lin_solve2(fluidUnitsArray, a, 1 + 4 * a);
     }
     
-    function advect(b, d, d0, u, v, dt)
+    function advect(b, fluidUnitsArray, dt)
     {
         var rangeArr = range(1,height+1);
         var Wdt0 = dt * width;
@@ -170,11 +272,12 @@ function FluidField(canvas) {
         var Wp5 = width + 0.5;
         var Hp5 = height + 0.5;
 
-        rangeArr.map( function(j) {
+        fluidUnitsArray.map( function(fluidUnit, j) {
+            j +=1;
             var pos = j * rowSize;
             for (var i = 1; i <= width; i++) {
-                var x = i - Wdt0 * u[++pos]; 
-                var y = j - Hdt0 * v[pos];
+                var x = i - Wdt0 * fluidUnit.u;
+                var y = j - Hdt0 * fluidUnit.v;
                 if (x < 0.5)
                     x = 0.5;
                 else if (x > Wp5)
@@ -193,21 +296,20 @@ function FluidField(canvas) {
                 var t0 = 1 - t1;
                 var row1 = j0 * rowSize;
                 var row2 = j1 * rowSize;
-                d[pos] = s0 * (t0 * d0[i0 + row1] + t1 * d0[i0 + row2]) + s1 * (t0 * d0[i1 + row1] + t1 * d0[i1 + row2]);
+                fluidUnit.u_prev = s0 * (t0 * fluidUnitsArray[i0 + row1].v_prev + t1 * fluidUnitsArray[i0 + row2].v_prev) + s1 * (t0 * fluidUnitsArray[i1 + row1].v_prev + t1 * fluidUnitsArray[i1 + row2].v_prev);
             }
         });
 
-        set_bnd(b, d);
+        set_bndU0(b, fluidUnitsArray);
     }
-    
-    function project(u, v, p, div)
-    {
 
-        var rangeArr = range(1,height+1);
+    function project(fluidUnitsArray)
+    {
 
         var h = -0.5 / Math.sqrt(width * height);
 
-        rangeArr.map(function(j){
+        for(var j = 1; j <= height; j++){
+            //j += 1;
             var row = j * rowSize;
             var previousRow = (j - 1) * rowSize;
             var prevValue = row - 1;
@@ -215,19 +317,19 @@ function FluidField(canvas) {
             var nextValue = row + 1;
             var nextRow = (j + 1) * rowSize;
             for (var i = 1; i <= width; i++ ) {
-                div[++currentRow] = h * (u[++nextValue] - u[++prevValue] + v[++nextRow] - v[++previousRow]);
-                p[currentRow] = 0;
+                fluidUnitsArray[++currentRow].v_prev = h * (fluidUnitsArray[++nextValue].u - fluidUnitsArray[++prevValue].u + fluidUnitsArray[++nextRow].v - fluidUnitsArray[++previousRow].v);
+                fluidUnitsArray[currentRow].u_prev = 0;
             }
-        });
+        }
 
-        set_bnd(0, div);
-        set_bnd(0, p);
+        set_bndV(0, fluidUnitsArray);
+        set_bndU(0, fluidUnitsArray);
         
-        lin_solve(0, p, div, 1, 4 );
+        lin_solve(0, fluidUnitsArray, 1, 4 );
         var wScale = 0.5 * width;
         var hScale = 0.5 * height;
 
-        rangeArr.map(function(j){
+        for (var j = 1; j<= height; j++ ) {
             var prevPos = j * rowSize - 1;
             var currentPos = j * rowSize;
             var nextPos = j * rowSize + 1;
@@ -236,72 +338,78 @@ function FluidField(canvas) {
             var nextRow = (j + 1) * rowSize;
 
             for (var i = 1; i<= width; i++) {
-                u[++currentPos] -= wScale * (p[++nextPos] - p[++prevPos]);
-                v[currentPos]   -= hScale * (p[++nextRow] - p[++prevRow]);
+                fluidUnitsArray[++currentPos].u -= wScale * (fluidUnitsArray[++nextPos].u_prev - fluidUnitsArray[++prevPos].u_prev);
+                fluidUnitsArray[currentPos].v   -= hScale * (fluidUnitsArray[++nextRow].u_prev - fluidUnitsArray[++prevRow].u_prev);
             }
-        });
-        set_bnd(1, u);
-        set_bnd(2, v);
+        }
+        set_bndU(1, fluidUnitsArray);
+        set_bndV(2, fluidUnitsArray);
     }
     
-    function dens_step(x, x0, u, v, dt)
+    function dens_step(fluidUnitsArray, dt)
     {
-        addFields(x, x0, dt);
-        diffuse(0, x0, x, dt );
-        advect(0, x, x0, u, v, dt );
+        addDenseFields(fluidUnitsArray, dt);
+        diffuse(0, fluidUnitsArray, dt );
+        advect(0, fluidUnitsArray, dt );
     }
-    
-    function vel_step(u, v, u0, v0, dt)
-    {
-        addFields(u, u0, dt );
-        addFields(v, v0, dt );
-        var temp = u0; u0 = u; u = temp;
-        var temp = v0; v0 = v; v = temp;
-        diffuse2(u,u0,v,v0, dt);
-        project(u, v, u0, v0);
-        var temp = u0; u0 = u; u = temp; 
-        var temp = v0; v0 = v; v = temp;
-        advect(1, u, u0, u0, v0, dt);
-        advect(2, v, v0, u0, v0, dt);
-        project(u, v, u0, v0 );
-    }
-    var uiCallback = function(d,u,v) {};
 
-    function Field(dens, u, v) {
+    function migratesVariablesToOlderVersions(fluidUnitsArray){
+        fluidUnitsArray.map(function(fluidUnit){
+            var temp = fluidUnit.u_prev; fluidUnit.u_prev = fluidUnit.u; fluidUnit.u = temp;
+            var temp = fluidUnit.v_prev; fluidUnit.v_prev = fluidUnit.v; fluidUnit.v = temp;
+        });
+    }
+    
+    function vel_step(fluidUnitsArray, dt)
+    {
+        addUFields(fluidUnitsArray, dt );
+        addVFields(fluidUnitsArray, dt );
+        //TODO: This could fail after the refactor
+        migratesVariablesToOlderVersions(fluidUnitsArray);
+        diffuse2(fluidUnitsArray, dt);
+        project(fluidUnitsArray);
+        migratesVariablesToOlderVersions(fluidUnitsArray);
+        advect(1, fluidUnitsArray, dt);
+        advect(2, fluidUnitsArray, dt);
+        project(fluidUnitsArray);
+    }
+    var uiCallback = function(fluidUnitsArray) {};
+
+    function Field(fluidUnitsArray) {
         // Just exposing the fields here rather than using accessors is a measurable win during display (maybe 5%)
         // but makes the code ugly.
         this.setDensity = function(x, y, d) {
-             dens[(x + 1) + (y + 1) * rowSize] = d;
+            fluidUnitsArray[(x + 1) + (y + 1) * rowSize].dense = d;
         }
         this.getDensity = function(x, y) {
-             return dens[(x + 1) + (y + 1) * rowSize];
+             return fluidUnitsArray[(x + 1) + (y + 1) * rowSize].dense;
         }
         this.setVelocity = function(x, y, xv, yv) {
-             u[(x + 1) + (y + 1) * rowSize] = xv;
-             v[(x + 1) + (y + 1) * rowSize] = yv;
+            fluidUnitsArray[(x + 1) + (y + 1) * rowSize].u = xv;
+            fluidUnitsArray[(x + 1) + (y + 1) * rowSize].v = yv;
         }
         this.getXVelocity = function(x, y) {
-             return u[(x + 1) + (y + 1) * rowSize];
+             return fluidUnitsArray[(x + 1) + (y + 1) * rowSize].u;
         }
         this.getYVelocity = function(x, y) {
-             return v[(x + 1) + (y + 1) * rowSize];
+             return fluidUnitsArray[(x + 1) + (y + 1) * rowSize].v;
         }
         this.width = function() { return width; }
         this.height = function() { return height; }
     }
-    function queryUI(d, u, v)
+    function queryUI(fluidUnitsArray)
     {
         for (var i = 0; i < size; i++)
-            u[i] = v[i] = d[i] = 0.0;
-        uiCallback(new Field(d, u, v));
+            fluidUnitsArray[i].u = fluidUnitsArray[i].v = fluidUnitsArray[i].dense = 0.0;
+        uiCallback(new Field(fluidUnitsArray));
     }
 
     this.update = function () {
-        queryUI(dens_prev, u_prev, v_prev);
+        queryUI(fluidUnitsArray);
         //fluidUnit.queryUI();
-        vel_step(u, v, u_prev, v_prev, dt);
-        dens_step(dens, dens_prev, u, v, dt);
-        displayFunc(new Field(dens, u, v));
+        vel_step(fluidUnitsArray, dt);
+        dens_step(fluidUnitsArray, dt);
+        displayFunc(new Field(fluidUnitsArray));
     }
     this.setDisplayFunction = function(func) {
         displayFunc = func;
@@ -324,15 +432,6 @@ function FluidField(canvas) {
     var size;
     var displayFunc;
     var fluidUnitsArray;
-
-    var FluidUnit = function(){
-        this.u = 0;
-        this.v = 0;
-        this.dense = 0;
-        this.u_prev = 0;
-        this.v_prev = 0;
-        this.dense_prev = 0;
-    };
 
     function reset()
     {

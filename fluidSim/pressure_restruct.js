@@ -230,7 +230,6 @@ function FluidField(canvas) {
             var currentPos = j * rowSize;
             var nextPos = j * rowSize + 1;
             var prevRow = (j - 1) * rowSize;
-            var currentRow = j * rowSize;
             var nextRow = (j + 1) * rowSize;
 
             for (var i = 1; i<= width; i++) {
@@ -249,16 +248,6 @@ function FluidField(canvas) {
         advect(0, dens, prev_dens, u, v, dt );
     }
 
-    function updateProperty(previousState, newState, property){
-        for(var i= 0; i< rowCount; i++)
-            for(var j=0; j<rowSize; j++){
-                var prev = previousState[i][j];
-                var neww = newState[i][j];
-                var temp = prev[property];
-                prev[property] = neww[property];
-                neww[property] = temp;
-            }
-    }
 
     //vel_step(u, v, u_prev, v_prev, dt);
     function vel_step(u, v, u0, v0, dt)
@@ -266,22 +255,14 @@ function FluidField(canvas) {
         addFields(u, u0, dt , "u");
         addFields(v, v0, dt , "v");
 
-        updateProperty(previousBodies, bodies, "u");
-        updateProperty(previousBodies, bodies, "v");
-        var temp = u0; u0 = u; u = temp;
-        var temp = v0; v0 = v; v = temp;
-        //TODO : why this swapping ??!!
-        diffuse_velocity(u,u0,v,v0);
-        project(u, v, u0, v0);
+        diffuse_velocity(u0, u, v0, v);
+        project(u0, v0, u, v);
 
-        updateProperty(previousBodies, bodies, "u");
-        updateProperty(previousBodies, bodies, "v");
-        var temp = u0; u0 = u; u = temp;
-        var temp = v0; v0 = v; v = temp;
         advect(1, u, u0, u0, v0, dt);
         advect(2, v, v0, u0, v0, dt);
         project(u, v, u0, v0 );
     }
+
     var uiCallback = function(d,u,v, bodies) {};
 
     function Field(dens, u, v, bodies) {

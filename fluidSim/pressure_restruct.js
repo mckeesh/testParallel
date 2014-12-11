@@ -36,9 +36,18 @@ FluidUnit.prototype.setVelocity = function(u, v){
 };
 
 function FluidField(canvas) {
-    function addFields(x, s, dt)
+    function addFields(x, s, dt, property)
     {
         for (var i=0; i<size ; i++ ) x[i] += dt*s[i];
+        if(false){
+            for(var i=0; i<rowCount; i++)
+                for(var j=0; j<rowSize; j++){
+                    var particle = bodies[i][j];
+                    var previous = previousBodies[i][j];
+                    particle[property] += dt * previous[property];
+                }
+
+        }
     }
 
     function set_bnd(b, x)
@@ -110,7 +119,8 @@ function FluidField(canvas) {
         }
     }
 
-    function diffuse(b, x, x0, dt)
+    //diffuse_density(0, prev_dens, dens);
+    function diffuse_density(b, x, x0)
     {
         var a = 0;
         lin_solve(b, x, x0, a, 1 + 4*a);
@@ -151,7 +161,8 @@ function FluidField(canvas) {
         }
     }
 
-    function diffuse2(x, x0, y, y0, dt)
+    //diffuse_velocity(u,u0,v,v0);
+    function diffuse_velocity(x, x0, y, y0)
     {
         var a = 0;
         lin_solve2(x, x0, y, y0, a, 1 + 4 * a);
@@ -230,20 +241,21 @@ function FluidField(canvas) {
         set_bnd(2, v);
     }
 
-    function dens_step(x, x0, u, v, dt)
+    function dens_step(dens, prev_dens, u, v, dt)
     {
-        addFields(x, x0, dt);
-        diffuse(0, x0, x, dt );
-        advect(0, x, x0, u, v, dt );
+        addFields(dens, prev_dens, dt, "density");
+        diffuse_density(0, prev_dens, dens);
+        advect(0, dens, prev_dens, u, v, dt );
     }
 
+    //vel_step(u, v, u_prev, v_prev, dt);
     function vel_step(u, v, u0, v0, dt)
     {
-        addFields(u, u0, dt );
-        addFields(v, v0, dt );
+        addFields(u, u0, dt , "u");
+        addFields(v, v0, dt , "v");
         var temp = u0; u0 = u; u = temp;
         var temp = v0; v0 = v; v = temp;
-        diffuse2(u,u0,v,v0, dt);
+        diffuse_velocity(u,u0,v,v0);
         project(u, v, u0, v0);
         var temp = u0; u0 = u; u = temp;
         var temp = v0; v0 = v; v = temp;
@@ -283,7 +295,7 @@ function FluidField(canvas) {
         }
 
     }
-    function queryUI(d, u, v, bodies)
+    function queryUI(d, u, v, bodies, previousBodies)
     {
         for (var i = 0; i < size; i++)
         {
@@ -293,14 +305,14 @@ function FluidField(canvas) {
             for(var j=0; j<rowSize; j++)
                 bodies[i][j] = new FluidUnit(0.0, 0.0, 0.0);
 
-        uiCallback(new Field(d, u, v, bodies));
+        uiCallback(new Field(d, u, v, bodies, previousBodies));
     }
 
     this.update = function () {
-        queryUI(dens_prev, u_prev, v_prev, bodies);
+        queryUI(dens_prev, u_prev, v_prev, bodies, previousBodies);
         vel_step(u, v, u_prev, v_prev, dt);
         dens_step(dens, dens_prev, u, v, dt);
-        displayFunc(new Field(dens, u, v));
+        displayFunc(new Field(dens, u, v, bodies, previousBodies));
     }
     this.setDisplayFunction = function(func) {
         displayFunc = func;
@@ -326,6 +338,7 @@ function FluidField(canvas) {
     var width;
     var height;
     var rowSize;
+    var rowCount;
     var size;
     var displayFunc;
     var bodies;

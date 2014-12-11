@@ -354,10 +354,10 @@ function FluidField(canvas) {
     }
 
     function migratesVariablesToOlderVersions(fluidUnitsArray){
-        fluidUnitsArray.map(function(fluidUnit){
-            var temp = fluidUnit.u_prev; fluidUnit.u_prev = fluidUnit.u; fluidUnit.u = temp;
-            var temp = fluidUnit.v_prev; fluidUnit.v_prev = fluidUnit.v; fluidUnit.v = temp;
-        });
+        for(var i = 0; i < fluidUnitsArray.length; i++){
+            var temp = fluidUnitsArray[i].u_prev; fluidUnitsArray[i].u_prev = fluidUnitsArray[i].u; fluidUnitsArray[i].u = temp;
+            var temp = fluidUnitsArray[i].v_prev; fluidUnitsArray[i].v_prev = fluidUnitsArray[i].v; fluidUnitsArray[i].v = temp;
+        }
     }
     
     function vel_step(fluidUnitsArray, dt)

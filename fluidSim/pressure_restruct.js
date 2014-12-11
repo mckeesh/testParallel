@@ -30,6 +30,11 @@ var FluidUnit = function(density, u, v){
     this.v = v;
 };
 
+FluidUnit.prototype.setVelocity = function(u, v){
+    this.u = u;
+    this.v = v;
+};
+
 function FluidField(canvas) {
     function addFields(x, s, dt)
     {
@@ -246,39 +251,53 @@ function FluidField(canvas) {
         advect(2, v, v0, u0, v0, dt);
         project(u, v, u0, v0 );
     }
-    var uiCallback = function(d,u,v) {};
+    var uiCallback = function(d,u,v, bodies) {};
 
-    function Field(dens, u, v) {
+    function Field(dens, u, v, bodies) {
         // Just exposing the fields here rather than using accessors is a measurable win during display (maybe 5%)
         // but makes the code ugly.
+
+        this.bodies = bodies;
+        this.width = function(){return width};
+        this.height = function(){return height;};
         this.setDensity = function(x, y, d) {
             dens[(x + 1) + (y + 1) * rowSize] = d;
+            bodies[x+1][y+1].density = d;
         }
         this.getDensity = function(x, y) {
+            //TODO : change accessor from bodies
             return dens[(x + 1) + (y + 1) * rowSize];
         }
         this.setVelocity = function(x, y, xv, yv) {
+            bodies[x+1][y+1].setVelocity(xv, yv);
             u[(x + 1) + (y + 1) * rowSize] = xv;
             v[(x + 1) + (y + 1) * rowSize] = yv;
         }
         this.getXVelocity = function(x, y) {
+            //TODO : change accessor from bodies
             return u[(x + 1) + (y + 1) * rowSize];
         }
         this.getYVelocity = function(x, y) {
+            //TODO : change accessor from bodies
             return v[(x + 1) + (y + 1) * rowSize];
         }
-        this.width = function() { return width; }
-        this.height = function() { return height; }
+
     }
-    function queryUI(d, u, v)
+    function queryUI(d, u, v, bodies)
     {
         for (var i = 0; i < size; i++)
+        {
             u[i] = v[i] = d[i] = 0.0;
-        uiCallback(new Field(d, u, v));
+        }
+        for(var i=0; i<size/rowSize; i++)
+            for(var j=0; j<rowSize; j++)
+                bodies[i][j] = new FluidUnit(0.0, 0.0, 0.0);
+
+        uiCallback(new Field(d, u, v, bodies));
     }
 
     this.update = function () {
-        queryUI(dens_prev, u_prev, v_prev);
+        queryUI(dens_prev, u_prev, v_prev, bodies);
         vel_step(u, v, u_prev, v_prev, dt);
         dens_step(dens, dens_prev, u, v, dt);
         displayFunc(new Field(dens, u, v));
@@ -309,9 +328,12 @@ function FluidField(canvas) {
     var rowSize;
     var size;
     var displayFunc;
+    var bodies;
+    var previousBodies;
     function reset()
     {
         rowSize = width + 2;
+        rowCount = height + 2;
         size = (width+2)*(height+2);
         dens = new Array(size);
         dens_prev = new Array(size);
@@ -319,18 +341,28 @@ function FluidField(canvas) {
         u_prev = new Array(size);
         v = new Array(size);
         v_prev = new Array(size);
-        previousBodies = new Array(size);
-        bodies = new Array(size);
+        previousBodies = new Array(rowCount);
+        bodies = new Array(rowCount);
+
+        for(var i=0 ; i<rowCount; i++){
+            previousBodies[i] = new Array(rowSize);
+            bodies[i] = new Array(rowSize);
+        }
 
         for (var i = 0; i < size; i++){
             dens_prev[i] = u_prev[i] = v_prev[i] = dens[i] = u[i] = v[i] = 0;
-            var fPrev = new FluidUnit(undefined, undefined, undefined);
-            var fCurrent = new FluidUnit(dens[i], u[i], v[i]);
-            previousBodies[i] = fPrev;
-            bodies[i] = fCurrent;
-        }
 
+            var rowIndex = Math.floor(i/rowSize);
+
+            var fPrev = new FluidUnit(0, 0, 0);
+            previousBodies[rowIndex][i-rowIndex] = fPrev;
+
+            var fCurrent = new FluidUnit(dens[i], u[i], v[i]);
+            bodies[rowIndex][i-rowIndex] = fCurrent;
+
+        }
     }
+
     this.reset = reset;
     this.setResolution = function (hRes, wRes)
     {
@@ -338,7 +370,7 @@ function FluidField(canvas) {
         if (res > 0 && res < 1000000 && (wRes != width || hRes != height)) {
             width = wRes;
             height = hRes;
-            reset();
+            reset(width, height);
             return true;
         }
         return false;

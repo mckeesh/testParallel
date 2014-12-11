@@ -39,6 +39,7 @@ function FluidField(canvas) {
     function addFields(x, s, dt, property)
     {
         for (var i=0; i<size ; i++ ) x[i] += dt*s[i];
+        //TODO : if property is defined
         if(false){
             for(var i=0; i<rowCount; i++)
                 for(var j=0; j<rowSize; j++){
@@ -248,15 +249,33 @@ function FluidField(canvas) {
         advect(0, dens, prev_dens, u, v, dt );
     }
 
+    function updateProperty(previousState, newState, property){
+        for(var i= 0; i< rowCount; i++)
+            for(var j=0; j<rowSize; j++){
+                var prev = previousState[i][j];
+                var neww = newState[i][j];
+                var temp = prev[property];
+                prev[property] = neww[property];
+                neww[property] = temp;
+            }
+    }
+
     //vel_step(u, v, u_prev, v_prev, dt);
     function vel_step(u, v, u0, v0, dt)
     {
         addFields(u, u0, dt , "u");
         addFields(v, v0, dt , "v");
+
+        updateProperty(previousBodies, bodies, "u");
+        updateProperty(previousBodies, bodies, "v");
         var temp = u0; u0 = u; u = temp;
         var temp = v0; v0 = v; v = temp;
+        //TODO : why this swapping ??!!
         diffuse_velocity(u,u0,v,v0);
         project(u, v, u0, v0);
+
+        updateProperty(previousBodies, bodies, "u");
+        updateProperty(previousBodies, bodies, "v");
         var temp = u0; u0 = u; u = temp;
         var temp = v0; v0 = v; v = temp;
         advect(1, u, u0, u0, v0, dt);
@@ -295,6 +314,8 @@ function FluidField(canvas) {
         }
 
     }
+
+    //queryUI(dens_prev, u_prev, v_prev, bodies, previousBodies);
     function queryUI(d, u, v, bodies, previousBodies)
     {
         for (var i = 0; i < size; i++)
@@ -302,8 +323,10 @@ function FluidField(canvas) {
             u[i] = v[i] = d[i] = 0.0;
         }
         for(var i=0; i<size/rowSize; i++)
-            for(var j=0; j<rowSize; j++)
+            for(var j=0; j<rowSize; j++){
                 bodies[i][j] = new FluidUnit(0.0, 0.0, 0.0);
+                previousBodies[i][j] = new FluidUnit(0.0, 0.0, 0.0);
+            }
 
         uiCallback(new Field(d, u, v, bodies, previousBodies));
     }

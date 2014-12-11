@@ -91,18 +91,18 @@ function FluidField(canvas) {
         x[(width+1)+maxEdge] = 0.5 * (x[width + maxEdge] + x[(width + 1) + height * rowSize]);
     }
 
-    function lin_solve(b, x, x0, a, c)
+    function lin_solve(b, x0, x, a, c)
     {
         if (a === 0 && c === 1) {
             for (var j=1 ; j<=height; j++) {
                 var currentRow = j * rowSize;
                 ++currentRow;
                 for (var i = 0; i < width; i++) {
-                    x[currentRow] = x0[currentRow];
+                    x0[currentRow] = x[currentRow];
                     ++currentRow;
                 }
             }
-            set_bnd(b, x);
+            set_bnd(b, x0);
         } else {
             var invC = 1 / c;
             for (var k=0 ; k<iterations; k++) {
@@ -110,23 +110,24 @@ function FluidField(canvas) {
                     var lastRow = (j - 1) * rowSize;
                     var currentRow = j * rowSize;
                     var nextRow = (j + 1) * rowSize;
-                    var lastX = x[currentRow];
+                    var lastX = x0[currentRow];
                     ++currentRow;
                     for (var i=1; i<=width; i++)
-                        lastX = x[currentRow] = (x0[currentRow] + a*(lastX+x[++currentRow]+x[++lastRow]+x[++nextRow])) * invC;
+                        lastX = x0[currentRow] = (x[currentRow] + a*(lastX+x0[++currentRow]+x0[++lastRow]+x0[++nextRow])) * invC;
                 }
-                set_bnd(b, x);
+                set_bnd(b, x0);
             }
         }
     }
 
     //diffuse_density(0, prev_dens, dens);
-    function diffuse_density(b, x, x0)
+    function diffuse_density(b, x0, x)
     {
         var a = 0;
-        lin_solve(b, x, x0, a, 1 + 4*a);
+        lin_solve(b, x0, x, a, 1 + 4*a);
     }
 
+    //lin_solve2(u, u0, v, v0, a, 1 + 4 * a);
     function lin_solve2(x, x0, y, y0, a, c)
     {
         if (a === 0 && c === 1) {

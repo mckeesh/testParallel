@@ -370,4 +370,4 @@ function runCRC(numPages, pageSize, numExecs){
         time: cumulativeTime / 1000 };
 }
 
-runCRC(8000000,4,1);
+runCRC(128,65536,150);

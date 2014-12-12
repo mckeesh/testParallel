@@ -260,17 +260,24 @@ function nqueenJS(size, unique_solutions)
     // get initial set of solutions
     var rangeArr = rangeTyped(2,size);
 
-    rangeArr.map(function(i) {
-        solutions += nqueen_solver1(size, i.val);
+    var solutionsObjectArr = rangeArr.map(function(i) {
+        return new SolutionsObj({
+            solutions: nqueen_solver1(size, i.val)
+        });
+    });
+
+    //SEQUENTIAL ONLY!
+    solutionsObjectArr.map(function(solutionObj){
+        solutions += solutionObj.solutions;
     });
 
     unique_solutions["solutions"] = solutions;
     solutions *= 8;
 
-    var rangeArr = rangeTyped(1,size/2);
+    rangeArr = rangeTyped(1,size/2);
 
-    // accound for symmetries
-    var solutionsObjectArr = rangeArr.mapPar(function(i) {
+    // account for symmetries
+    solutionsObjectArr = rangeArr.map(function(i) {
         return new SolutionsObj({
             solutions: nqueen_solver(size, (1 << size) - 1, 1 << i.val, 1 << (i.val + 1), (1 << i.val) >> 1, u_solutions),
             unique_solutions:  u_solutions["solutions"]
